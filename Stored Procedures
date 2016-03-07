@@ -1,0 +1,92 @@
+ALTER proc	[dbo].[Tracks_Insert]
+           @Id int OUTPUT,
+		   @Name nvarchar(50),
+           @Description nvarchar(2000),
+		   @MoreInformation nvarchar(max),
+           @UserId nvarchar(128)
+AS
+BEGIN
+	INSERT dbo.tracks
+	(
+		  Name
+		, Description
+		, MoreInformation
+		, UserId
+	)
+	VALUES 
+	(
+		  @Name
+		, @Description
+		, @MoreInformation
+		, @UserId
+	);
+
+	SELECT @id = convert(int,scope_identity())
+
+END
+
+-----------------------------------------------
+
+ALTER PROC [dbo].[Tracks_Update]
+		   @Id int OUTPUT,
+		   @Name nvarchar(50),
+           @Description nvarchar(2000),
+		   @MoreInformation nvarchar(max),
+           @UserId nvarchar(128)
+AS
+BEGIN
+	UPDATE   [dbo].Tracks SET
+			 Name = @Name
+			,Description = @Description
+			,MoreInformation = @MoreInformation
+			,DateModified = getutcdate()
+	WHERE
+			Id = @Id
+END
+
+---------------------------------------------
+
+ALTER PROC [dbo].[Tracks_SelectById]
+	@Id int
+AS
+BEGIN
+	SELECT
+		Id
+		,Name
+		,Description
+		,MoreInformation
+	FROM dbo.Tracks
+	WHERE
+		Id = @Id
+
+		EXEC TrackCourses_SelectByTrackId @Id 
+		END
+		
+---------------------------------------------
+
+ALTER PROC [dbo].[Tracks_SelectAll]
+AS
+BEGIN
+	SELECT
+		Id
+		,Name
+		,Description
+		,MoreInformation
+
+	FROM dbo.Tracks (nolock)
+
+	EXEC dbo.TrackCourses_SelectAll 
+
+END
+
+---------------------------------------------
+
+ALTER PROC [dbo].[Tracks_Delete]
+	@Id int
+AS
+BEGIN
+DELETE dbo.Tracks
+WHERE 
+	Id = @Id
+END
+
