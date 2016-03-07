@@ -1,0 +1,15 @@
+﻿.template {
+             margin-bottom: 20px;
+             
+                -moz-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+            -webkit-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+            box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+}
+
+.tagTemplate {
+             margin-left: 3px;
+}
+
+#topMost {
+    padding-top:200px;
+}

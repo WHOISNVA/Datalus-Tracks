@@ -1,0 +1,173 @@
+﻿@model Sabio.Web.Models.ViewModels.BaseViewModel
+@{
+    ViewBag.Title = "Index";
+}
+
+<link href="~/Content/TrackStyleSheet1.css" rel="stylesheet" />
+
+<div id="#topMost">
+
+    <div class="content-hero content-hero-new-height">
+        <img class="content-hero-embed" src="~/wrapkit/images/dummy/landing1.jpg" alt="cover">
+        <div class="content-hero-bar hero-bar-new-height">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="float-bar clearfix ml-4x">
+                        <div class="col-sm-8">
+                            <div class="hidden-lg hidden-md hidden-sm">
+                                <h2 class="display-name media-heading">Datalus Tracks</h2>
+                                <p class="text-muted mb-4x"><span class="mr-2x">In-Person &amp; Online Sessions</span></p>
+                            </div>
+                            <div class="visible-lg visible-md visible-sm">
+                                <h2 class="media-heading text-light">Datalus Tracks</h2>
+                                <p class="mb-4x text-light"><span class="mr-2x">In-Person &amp; Online Sessions</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+@if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+{
+<a href="/Tracks/Create" style="color:#5D9CEC; padding-bottom:10px;" class="mr-2x pull-right"><strong>Create New </strong><i class="fa fa-angle-double-right"></i></a>
+}
+<div class="content-body">
+    <div class="row">
+        <div data-ng-include="'containerForTheTemplate.html'">
+        </div>
+    </div>
+</div>
+
+
+<script type="text/ng-template" id="containerForTheTemplate.html">
+    <div data-ng-controller="TracksController as dashboard">
+
+        <div class="col-md-12" data-ng-repeat="track in dashboard.items track by track.id">
+            <div class="panel-info template">
+                <div class="panel-heading">
+                    <div class="panel-control pull-right">
+                        <div class="panel-control" style="padding-right:10px;">
+                            <a href="courses/MoreInfo/{{course.id}}" ng-repeat="course in track.courses" class="label tagTemplate">{{course.name}}</a>
+                        </div>
+                    </div>
+                    <h3 class="panel-title"><strong>{{track.name}}</strong></h3>
+                </div><!-- /.panel-heading -->
+                <div class="panel-body">
+
+                    <p ng-bind-html="track.description">{{track.description}}</p>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="panel-title">More Information</h4>
+                            <div class="panel" data-context="minimalize">
+                                <div class="panel-body border-teal">
+                                    <div data-toggle="slimScroll" style="height:195px" data-color="#48CFAD" data-rail-color="#48CFAD" data-allow-page-scroll="false" data-rail-visible="true">
+                                        <p ng-bind-html="track.moreInformation"><strong>Auto hide nice scroll,</strong>{{track.moreInformation}}</p>
+                                    </div>
+                                </div><!-- /.panel-body -->
+                            </div><!-- /.panel -->
+@if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+{
+                            <div class="form-group">
+                                <a href="tracks/{{track.id}}/edit" class="btn btn-bordered btn-warning"><i class="icon-note fa-fw"></i> Edit</a>
+                                <a href="tracks/create" class="btn btn-bordered btn-primary"><i class="icon-plus fa-fw"></i> Add</a>
+                            </div>
+}
+                        </div><!-- /.cols -->
+                        <div class="col-md-6">
+                            <h4 class="panel-title">Course Requirements</h4>
+                            <uib-accordion close-others="true">
+                                <uib-accordion-group ng-repeat="course in track.courses" panel-class="panel">
+                                    <uib-accordion-heading>
+                                        <div id="{{course.id}}">
+                                            <h3 class="panel-title">{{course.name}}</h3>
+                                        </div>
+                                    </uib-accordion-heading>
+                                        <div class="body">
+                                            <p>{{course.description}}<vhs class="p"></vhs></p>
+                            </div>
+                                </uib-accordion-group>
+                            </uib-accordion>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- /.panel -->
+
+</script>
+
+@section Scripts {
+    <script src="~/Scripts/sabio.services.track.js"></script>
+    <script src="~/Wrapkit/scripts/demo/plugin-animate-demo.js"></script>
+
+
+    <script type="text/javascript">
+        (function () {
+            "use strict";
+
+            angular.module(APPNAME)
+            .factory("$trackService", trackServiceFactory);
+
+            trackServiceFactory.$inject = ['$baseService', '$sabio'];
+
+            function trackServiceFactory($baseService, $sabio) {
+                var myTrackServiceObject = sabio.services.track;
+                var newService = $baseService.merge(true, {}, myTrackServiceObject, $baseService);
+
+                console.log("Track Service", myTrackServiceObject);
+
+                return newService;
+            }
+        })();
+
+        (function () {
+            "use strict";
+
+            angular.module(APPNAME)
+                .controller("TracksController", TracksController);
+
+            TracksController.$inject = ['$scope', '$baseController', '$trackService'];
+
+            function TracksController($scope, $baseController, $trackService) {
+
+                var vm = this;
+                vm.headingInfo = "Track"
+                vm.items = null;
+                vm.show = true;
+
+                vm.$trackService = $trackService;
+                vm.$scope = $scope;
+
+                vm.receiveItems = _receiveItems;
+                vm.onError = _onError;
+
+                $baseController.merge(vm, $baseController);
+
+                vm.notify = vm.$trackService.getNotifier($scope);
+
+                render();
+
+                function render() {
+                    vm.$trackService.getAll(vm.receiveItems, vm.onError);
+                }
+
+                function _receiveItems(data) {
+                    vm.notify(function () {
+                        console.log(data.items);
+                        vm.items = data.items;
+                    });
+                }
+
+                function _onError(jqXhr, error) {
+                    console.error(error);
+                }
+            }
+        })();
+    </script>
+}

@@ -1,0 +1,354 @@
+﻿@model Sabio.Web.Models.ViewModels.TrackViewModel
+@{
+    ViewBag.Title = "Create";
+}
+
+<head>
+    <link href="Content/Site.css" rel="stylesheet" type="text/css" />
+</head>
+
+<h2>SABIO Tracks</h2>
+
+<div class="row road" data-ng-controller="trackController as dashboard">
+
+    <div class="panel-heading" ng-include="'/createPage.html'"></div>
+
+    <script type="text/ng-template" id="/createPage.html">
+
+        <div class="col-md-6">
+            <div class="panel wholething" data-fill-color="true">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="icon-note fa-fw"></i></h3>
+                </div><!-- /panel-heading -->
+                <!-- panel-body -->
+                <div class="panel-body">
+                    @*novalidate turns off the validation that was previously done in the html so that you can do so in angular*@
+                    <form id="Tracksform" name="dashboard.TracksForm" ng-submit="dashboard.submitTrack()" novalidate>
+                        <div hidden class="form-group">
+                            <label class="control-label" for="basicPasswd">Id</label>
+                            <input ng-model="dashboard.trackItem.id"
+                                   class="form-control"
+                                   id="Id"
+                                   name="id"
+                                   ng-init="@Model.Id" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Name:</label>
+                            <textarea ng-model="dashboard.trackItem.name"
+                                      class="form-control ng-class:{'error':dashboard.showTrackErrors && !dashboard.formTracks.name.$valid}"
+                                      id="Name"
+                                      name="name"
+                                      placeholder="Enter track name"
+                                      ng-minlength="2"
+                                      ng-maxlength="50"
+                                      required></textarea>
+                            <div role="alert" class="help-inline error">
+                                <span class="error icon-info" ng-show="dashboard.showTrackErrors && dashboard.formTracks.name.$error.required">Name is required</span>
+                                <span class="error icon-info" ng-show="dashboard.showTrackErrors && dashboard.formTracks.name.$error.minlength">Too short! Must be at least 2 characters</span>
+                                <span class="error icon-info" ng-show="dashboard.showTrackErrors && dashboard.formTracks.name.$error.maxlength">Too long! Must be 50 characters or less</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description:</label>
+                            <textarea ng-model="dashboard.trackItem.description"
+                                      class="form-control ng-class:{'error':dashboard.showTrackErrors && !dashboard.formTracks.description.$valid}"
+                                      id="description"
+                                      name="description"
+                                      ckeditor="track.ckeditorOptions"
+                                      placeholder="Enter track Description"
+                                      ng-minlength="2"
+                                      required></textarea>
+                            <div role="alert" class="help-inline error">
+                                <span class="error icon-info" ng-show="dashboard.showTrackErrors && dashboard.formTracks.description.$error.required">Descritpion is required</span>
+                                <span class="error icon-info" ng-show="dashboard.showTrackErrors && dashboard.formTracks.description.$error.minlength">Too short! Must be at least 2 characters</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>More Info:</label>
+                            <textarea ng-model="dashboard.trackItem.moreInformation"
+                                      class="form-control ng-class:{'error':dashboard.showTrackErrors && !dashboard.formTracks.description.$valid}"
+                                      id="moreInfo"
+                                      name="moreInfo"
+                                      ckeditor="track.ckeditorOptions"
+                                      placeholder="Enter track Information"
+                                      ng-minlength="2"
+                                      required></textarea>
+                            <div role="alert" class="help-inline error">
+                                <span class="error icon-info" ng-show="dashboard.showTrackErrors && dashboard.formTracks.description.$error.required">Descritpion is required</span>
+                                <span class="error icon-info" ng-show="dashboard.showTrackErrors && dashboard.formTracks.description.$error.minlength">Too short! Must be at least 2 characters</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Courses:</label>
+                            <ui-select multiple ng-model="dashboard.trackItem.courses">
+                                <ui-select-match placeholder="Select Courses">
+                                    {{$item.name}}
+                                </ui-select-match>
+                                <ui-select-choices repeat="item in dashboard.courseItems | filter: $select.search">
+                                    <div ng-bind-html="item.name"></div>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+
+                        <button type="submit" id="cmdTrackButton" class="btn btn-success">Submit</button>
+                        <button type="button" ng-class="dashboard.deleteButtonClass" data-toggle="modal" data-target="#modalDeleteConfirm" id="cmdDeleteButton" class="btn btn-danger">Delete</button>
+                        <button type="button" id="cmdResetForm" class="btn btn-toolbar" ng-click="dashboard.resetForm()">Reset Form</button>
+                        <a href="/Tracks" class="btn btn-toolbar" id="cmdCancel">Return To Index </a>
+                    </form>
+
+                    <div class="alert " id="msgWindow"></div>
+                </div><!-- /panel-body -->
+            </div>
+        </div>
+
+        <!-- Delete Confirmation modal -->
+        <div class="modal fade" id="modalDeleteConfirm" tabindex="-1" role="dialog" aria-labelledby="modalSmallLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon_close fa-lg"></i></button>
+                        <h4 class="modal-title" id="modalLabel">Are your sure?</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Deleting this Track is permanent.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="cmdDeleteCancel" data-dismiss="modal">Cancel</button>
+                        <button type="button" ng-click="dashboard.deleteTrack()" class="btn btn-primary" id="cmdDeleteConfirm" data-dismiss="modal">Delete</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+    </script>
+</div>
+
+@section pageInitScripts
+{
+    <script src="~/Scripts/ng/ckeditor/angular-ckeditor.js"></script>
+
+    <script type="text/javascript">
+        sabio.extraNgDependencies = ["ckeditor", "ui.bootstrap"]
+    </script>
+
+}
+
+@section Scripts {
+    <script src="//cdn.ckeditor.com/4.5.6/full/ckeditor.js"></script>
+
+    <script src="~/Scripts/sabio.services.track.js"></script>
+    <script src="~/Scripts/sabio.services.courses.js"></script>
+    <script src="~/Scripts/jquery.validate.js"></script>
+    <script src="~/Wrapkit/scripts/select2.js"></script>
+    <script src="~/Wrapkit/scripts/moment.js"></script>
+    <script src="~/Wrapkit/scripts/summernote.js"></script>
+    <script type="text/javascript">
+        sabio.page.urlId = @Model.Id;
+    </script>
+    <script type="text/javascript">
+        (function () {
+            "use strict";
+
+            angular.module(APPNAME)
+            .factory("$trackService", trackServiceFactory);
+
+            trackServiceFactory.$inject = ['$baseService', '$sabio'];
+
+            function trackServiceFactory($baseService, $sabio) {
+                var myTrackServiceObject = sabio.services.track;
+
+                var newService = $baseService.merge(true, {}, myTrackServiceObject, $baseService);
+
+                console.log("Track Service", myTrackServiceObject);
+
+                return newService;
+            }
+        })();
+
+        (function () {
+            "use strict";
+
+            angular.module(APPNAME)
+            .factory("$courseService", courseServiceFactory);
+
+            courseServiceFactory.$inject = ['$baseService', '$sabio'];
+
+            function courseServiceFactory($baseService, $sabio) {
+                var aSabioCourseServiceObject = sabio.services.courses;
+
+                var newService = $baseService.merge(true, {}, aSabioCourseServiceObject, $baseService);
+
+                console.log("Course Service", aSabioCourseServiceObject);
+
+                return newService;
+            }
+        })();
+
+        (function () {
+            "use strict";
+
+            angular.module(APPNAME)
+                .controller("trackController", trackController);
+            angular.module(APPNAME)
+            .requires.push('ckeditor');
+
+            trackController.$inject = ['$scope', '$baseController', '$trackService', '$courseService'];
+
+            function trackController($scope, $baseController, $trackService, $courseService) {
+
+                var vm = this;
+                vm.trackItem = null;
+                vm.showTrackErrors = false;
+                vm.showSuccessMsg = false;
+                vm.showErrorMsg = false;
+                vm.formTracks = null;
+                vm.courseItems = null;
+                vm.trackItems = null;
+
+                vm.ckeditorOptions = {
+                    language: 'em',
+                    allowedContent: true,
+                    entities: false
+                };
+
+                vm.$scope = $scope;
+                vm.$trackService = $trackService;
+                vm.$courseService = $courseService;
+
+                vm.ajaxPostSuccess= _ajaxPostSuccess;
+                vm.ajaxPutSuccess= _ajaxPutSuccess;
+                vm.getCourseIds=_getCourseIds;
+                vm.receiveCourseItems = _receiveCourseItems;
+                vm.deleteTrack = _deleteTrack;
+                vm.ajaxSuccess = _ajaxSuccess;
+                vm.onSuccess = _onSuccess;
+                vm.onError = _onError;
+                vm.resetForm = _resetForm;
+                vm.submitTrack = _submitTrack;
+                $baseController.merge(vm, $baseController);
+
+                vm.notify = vm.$trackService.getNotifier($scope);
+
+                function _getCourseIds(){
+                    vm.trackItem.courseIds=[];
+                    for(var x in vm.trackItem.courses){
+                        vm.trackItem.courseIds.push(vm.trackItem.courses[x].id);
+                    }
+                    console.log(vm.trackItem.courseIds)
+                    return vm.trackItem.courseIds;
+                }
+
+                render();
+                function render(){
+                    vm.$courseService.ajaxGetAll(vm.receiveCourseItems, vm.onError);
+                }
+
+
+                // RENDER THE EDIT PAGE
+                function _ajaxSuccess () {
+
+                }
+
+                // SUBMIT ON CREATE OR EDIT VIEW
+                function _submitTrack () {
+                    //The errors begin the page with being true and as the requirements are met then they are stripped off (guilty until proven innocent)
+                    vm.showTrackErrors = true;
+                    //Assuming that the requirements for the form TrackForm have been met
+                    if (vm.TracksForm.$valid) {
+                        //If the id of the item is zero (meaning the item does not exist in the database because it has not been created yet)
+                        if (sabio.page.urlId == 0) {
+                            vm.getCourseIds();
+                            console.log("valid form Tracks Create)... ->", vm.trackItem)
+                            vm.$trackService.Create(vm.trackItem, _ajaxPostSuccess, _ajaxError);
+                        }
+                            // If the id of the item is greater that zero (meaning the item exists in the database) then that means you are editing!
+                        else {
+                            vm.getCourseIds();
+                            console.log("valid form Track Update)... ->", vm.trackItem)
+                            vm.$trackService.Update(vm.trackItem, sabio.page.urlId, _ajaxPutSuccess, _ajaxError);
+                        }
+                    }
+                    else {
+                        //If the form wasnt done right than tell them it wasnt done right in the console
+                        console.log('invalid form... ->', vm.TracksItem);
+                    }
+                }
+
+                //FOR ACTUALLY DELETING A Track
+                function _deleteTrack () {
+                    console.log("delete track...");
+                    vm.$trackService.delete(sabio.page.urlId, _ajaxDeleteSuccess, _ajaxError);
+                }
+
+                //FOR CLEARING ALL FIELDS IN EITHER CREATE OR EDIT VIEW BE CAREFUL USING THIS IN EDIT PROCESS
+                function _resetForm(){
+                    console.log("reset form");
+                    vm.showTrackErrors = false;
+                    vm.trackItem = null;
+                    vm.form.$setPristine();
+                    vm.form.$setUntouched()
+                    vm.showSuccessMsg = false;
+                    vm.showErrorMsg = false;
+                }
+
+                //FOR SUCCESSFUL RENDER OF DATA
+                function _onSuccess(data, status, xhr){
+                    var result = JSON.stringify(data)
+                    console.log(result);
+                    console.log(data.item);
+                    vm.notify(function () {
+                        vm.trackItem = data.item;
+                        vm.showSuccessMsg = true;
+                    });
+                }
+
+                //FOR A SUCCESSFUL POST
+                function _ajaxPostSuccess (data, status, xhr) {
+                    console.log('success... ' + data);
+                    vm.trackId = data.item;
+                    vm.$alertService.success("Create was Successful");
+                    // alert
+                }
+
+                function _ajaxPutSuccess (data, status, xhr) {
+                    console.log('success... ' + data);
+                    vm.trackId = data.item;
+                    vm.$alertService.info("Change Saved");
+                    // alert
+                }
+
+                //DELETE NOTIFICATION
+                function _ajaxDeleteSuccess (data, status, xhr) {
+                    console.log('delete success... ' + data);
+                    vm.$alertService.success("Record Deleted");
+                }
+
+                //FOR UNSUCCESSFUL SUBMIT PROCESS
+                function _ajaxError (jqXHR, textStatus, errorThrown) {
+                    console.log("ajax error..." + jqXHR + textStatus + errorThrown);
+                    vm.$alertService.error("An Error Occured");
+                }
+
+                //FOR UNSUCCESSFUL RENDER METHOD
+                function _onError(jqXHR, textStatus, errorThrown){
+                    vm.notify(function () {
+                        vm.showErrorMsg = true;});
+                }
+
+                //FOR GRABBING Courses
+                function _receiveCourseItems(data) {
+                    vm.notify(function () {
+                        vm.courseItems = data.items;
+                    })
+                    if(sabio.page.urlId > 0){
+                        vm.$trackService.GetById(sabio.page.urlId, vm.onSuccess, vm.onError);
+                    }
+                    console.log(data.items)
+                }
+            }
+        })();
+    </script>
+}
